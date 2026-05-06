@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Upload, FileText, Sparkles, Zap, Crown, BookOpen } from 'lucide-react'
 import { AssignmentInput } from '@/components/features/assignment/assignment-input'
-import { ExplanationView } from '@/components/features/assignment/explanation-view'
-import { PricingCard } from '@/components/features/subscription/pricing-card'
 import { UsageMeter } from '@/components/features/subscription/usage-meter'
 import { Container } from '@/components/layout/container'
 import { Header } from '@/components/layout/header'
@@ -20,11 +17,7 @@ export default function Home() {
       <Header />
       
       <Container className="py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-24"
-        >
+        <div className="text-center mb-24">
           <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-xl px-8 py-4 rounded-3xl shadow-2xl border border-white/50 mb-8">
             <Sparkles className="w-10 h-10 text-yellow-500 animate-pulse" />
             <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
@@ -35,15 +28,11 @@ export default function Home() {
             Turn confusing assignment instructions into crystal-clear guidance. 
             Your AI teacher explains what to do, step-by-step, without doing your homework for you.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start mb-20">
           {/* Input Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-8"
-          >
+          <div className="space-y-8">
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-10 border border-white/50 shadow-2xl">
               <UsageMeter />
               
@@ -56,13 +45,10 @@ export default function Home() {
                 onAnalyzingChange={setIsAnalyzing}
               />
             </div>
-          </motion.div>
+          </div>
 
           {/* Result Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
+          <div>
             {result ? (
               <ExplanationView explanation={result} />
             ) : (
@@ -76,15 +62,11 @@ export default function Home() {
                 </p>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
 
         {/* Pricing Teaser */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
             <h2 className="text-3xl font-bold mb-4">Unlimited explanations for KES 100/week</h2>
           </div>
@@ -108,7 +90,7 @@ export default function Home() {
               popular={false}
             />
           </div>
-        </motion.div>
+        </div>
       </Container>
     </div>
   )
