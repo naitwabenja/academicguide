@@ -2,9 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const Tesseract = require('tesseract.js');
-const axios = require('axios');
-const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
+
+const { getFirebase } = require('./firebaseAdmin');
+
+const { deepseekChat, deepseekEmbeddings } = require('./deepseekGateway');
+
+// Firestore collection/table: analyses
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,11 +20,10 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Supabase
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+// Firebase (Firestore)
+const { firestore } = getFirebase();
+
+
 
 // File upload
 const upload = multer({ 
@@ -211,19 +216,22 @@ app.post('/api/analyze', rateLimit, upload.single('file'), async (req, res) => {
     // Get AI explanation
     const explanation = await getAIExplanation(assignmentText);
 
-    // Save to database
+    // Save to database (Firestore)
     const userId = req.headers['x-user-id'] || 'anonymous';
-    const { error } = await supabase
-      .from('analyses')
-      .insert({
-        user_id: userId,
-        assignment_text: assignmentText,
-        explanation: explanation,
-        is_pro: !!req.headers['x-subscription']
-      });
+
+    const docData = {
+      user_id: userId,
+      assignment_text: assignmentText,
+      explanation: explanation,
+      is_pro: !!req.headers['x-subscription'],
+      created_at: new Date().toISOString()
+    }
+
+    await firestore.collection('analyses').add(docData)
 
     res.json({ explanation });
   } catch (error) {
+
     console.error('Analysis error:', error);
     res.status(500).json({ error: error.message });
   }
@@ -231,19 +239,28 @@ app.post('/api/analyze', rateLimit, upload.single('file'), async (req, res) => {
 
 app.get('/api/history/:userId', async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('analyses')
-      .select('*')
-      .eq('user_id', req.params.userId)
-      .order('created_at', { ascending: false })
-      .limit(10);
+    const userId = req.params.userId
 
-    if (error) throw error;
+    // Firestore: created_at is stored as ISO string, so lexical order matches chronological order.
+
+    const snapshot = await firestore
+      .collection('analyses')
+      .where('user_id', '==', userId)
+      .orderBy('created_at', 'desc')
+      .limit(10)
+      .get()
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
